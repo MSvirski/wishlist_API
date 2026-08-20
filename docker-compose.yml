@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Сервис базы данных
+  db:
+    image: postgres:15
+    container_name: auth-postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: maks123
+      POSTGRES_DB: pet_auth_db
+    ports:
+      - "5433:5432"  # Оставляем порт 5433 наружу для твоего ПК, если захочешь подключиться
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Сервис нашего FastAPI приложения
+  web:
+    build: .
+    container_name: fastapi-auth-app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db  # Запускать приложение только после старта базы данных
+
+volumes:
+  postgres_data:  # Хранилище, чтобы данные пользователей не удалялись при перезапуске контейнеров
