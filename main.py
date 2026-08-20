@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 import models
@@ -12,7 +12,7 @@ from security import get_password_hash, verify_password, create_access_token
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Auth Project")
+app = FastAPI(title="WishlistApp")
 
 
 @app.get("/")

@@ -1,6 +1,6 @@
-# 🔐 FastAPI JWT Authentication Service
-
-Современный и безопасный микросервис авторизации и аутентификации пользователей. Написан на **FastAPI** с использованием **SQLAlchemy 2.0** и полноценным развертыванием в **Docker Compose**.
+# 🔐 WISHLIST API(v0.0.1)
+ 
+На данный момент представляет собой микросервис авторизации и аутентификации пользователей.
 
 ## 🚀 Стек технологий
 * **Backend:** Python 3.11, FastAPI, Pydantic v2
@@ -32,18 +32,18 @@ pet_fastAPI/
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com
-   cd pet_fastAPI
+   git clone https://github.com/MSvirski/wishlist_API.git
+   cd wishlist_API
    ```
 
-2. Создайте файл `.env` в корневой папке и укажите секретный ключ:
+2. Скопируйте файл `.env` из примера, и при необходимости измените значения:
    ```text
-   SECRET_KEY=super_secret_random_string_here
+   cp .env.example .env
    ```
 
 3. Запустите сборку и проект:
    ```bash
-   docker compose up --build
+   sudo docker compose up --build
    ```
 
 Сервер автоматически поднимется на порту `8000`, а PostgreSQL запустится внутри изолированной сети Docker.

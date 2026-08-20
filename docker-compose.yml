@@ -4,24 +4,30 @@ services:
   # Сервис базы данных
   db:
     image: postgres:15
-    container_name: auth-postgres-db
+    container_name: wishlist-postgres-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: maks123
-      POSTGRES_DB: pet_auth_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5433:5432"  # Оставляем порт 5433 наружу для твоего ПК, если захочешь подключиться
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Сервис нашего FastAPI приложения
   web:
     build: .
-    container_name: fastapi-auth-app
+    container_name: wihslist-app
     ports:
-      - "8000:8000"
+      - "${APP_EXTERNAL_PORT}:8000"
     depends_on:
-      - db  # Запускать приложение только после старта базы данных
+      db:
+        condition: service_healthy   # Запускать приложение только после старта базы данных
 
 volumes:
   postgres_data:  # Хранилище, чтобы данные пользователей не удалялись при перезапуске контейнеров
