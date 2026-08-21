@@ -27,7 +27,19 @@ pet_fastAPI/
 ├── Dockerfile      # Инструкция сборки контейнера приложения
 └── docker-compose.yml # Оркестрация контейнеров приложения и БД
 ```
-
+## 💻 Быстрый запуск (через curl)
+1. Скачивает проект в $HOME/Desktop/wishlist_app и автоматически запускает контейнеры:
+   ```bash
+   curl -sSL https://raw.githubusercontent.com/MSvirski/wishlist_API/refs/heads/main/autorun.sh | bash -s -- up
+   ```
+2. Для остановки контейнеров используйте:
+   ```bash
+   curl -sSL https://raw.githubusercontent.com/MSvirski/wishlist_API/refs/heads/main/autorun.sh | bash -s -- down
+   ```
+3. Для полного удаления всех компонентов программы используйте:
+   ```bash
+   curl -sSL https://raw.githubusercontent.com/MSvirski/wishlist_API/refs/heads/main/autorun.sh | bash -s -- down   
+   ```
 ## 💻 Быстрый запуск (через Docker Compose)
 
 1. Клонируйте репозиторий:
