@@ -1,0 +1,35 @@
+name: Code Quality Check
+
+# Сценарий запускается при пуше в main или при создании Pull Request в ветку main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Клонируем код репозитория на виртуальную машину GitHub
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Разворачиваем чистую среду Python
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip' # Ускоряет повторные запуски за счет кэширования
+
+    # 3. Устанавливаем линтер Ruff
+    - name: Install Ruff
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff
+
+    # 4. Запускаем проверку кода
+    # Если линтер найдет хоть одну ошибку, шаг завершится с ошибкой, и проверка завалится
+    - name: Run Ruff Linter
+      run: ruff check .

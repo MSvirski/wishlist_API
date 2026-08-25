@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+
 from app.auth.router import router as auth_router
+
 from .auth import models
 from .database import engine
+
 # Импортируем функцию проверки пароля и создания токена
 
 

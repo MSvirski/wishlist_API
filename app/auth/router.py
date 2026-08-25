@@ -1,11 +1,11 @@
-from .security import get_password_hash, verify_password, create_access_token
-from fastapi import FastAPI, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm  # <-- Добавили импорт
-from . import schemas
-from app.database import get_db
 from sqlalchemy.orm import Session
-from fastapi import APIRouter
-from . import models
+
+from app.database import get_db
+
+from . import models, schemas
+from .security import create_access_token, get_password_hash, verify_password
 
 router = APIRouter()
 

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 
+
 # Базовая схема для пользователя (то, что общее для ввода и вывода)
 class UserBase(BaseModel):
     username: str
