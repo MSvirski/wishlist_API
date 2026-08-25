@@ -1,27 +1,16 @@
+from .security import get_password_hash, verify_password, create_access_token
 from fastapi import FastAPI, Depends, HTTPException, status, Response
-from sqlalchemy.orm import Session
-
-import models
-import schemas
-from database import engine, get_db
-# Импортируем функцию проверки пароля и создания токена
 from fastapi.security import OAuth2PasswordRequestForm  # <-- Добавили импорт
-from security import get_password_hash, verify_password, create_access_token
+from . import schemas
+from app.database import get_db
+from sqlalchemy.orm import Session
+from fastapi import APIRouter
+from . import models
 
-
-
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="WishlistApp")
-
-
-@app.get("/")
-def read_root():
-    return {"message": "База данных PostgreSQL успешно подключена! Перейдите по адресу http://localhost:8000/docs#/"}
-
+router = APIRouter()
 
 # Эндпоинт для регистрации
-@app.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # 1. Проверяем, существует ли уже пользователь с таким email
     db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
@@ -59,7 +48,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 # Эндпоинт для входа (логина) и получения токена
-@app.post("/token", response_model=schemas.Token)
+@router.post("/token", response_model=schemas.Token)
 def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)

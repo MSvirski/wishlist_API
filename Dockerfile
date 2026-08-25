@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY . .
 
 # 6. Указываем команду для запуска сервера при старте контейнера
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
