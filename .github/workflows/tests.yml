@@ -1,7 +1,9 @@
-name: Run Tests
+name: Integration Tests (Pytest)
 
 on:
   pull_request:
+    branches: [ main ]
+  push:
     branches: [ main ]
 
 jobs:
@@ -40,4 +42,4 @@ jobs:
         env:
           # Переопределяем хост: на GitHub база доступна по адресу localhost
           TEST_DATABASE_URL: postgresql+asyncpg://postgres:qwerty123@localhost:5432/pet_wishlist_test_db
-        run: pytest
+        run: pytest -v
