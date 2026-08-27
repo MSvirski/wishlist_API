@@ -9,9 +9,19 @@ target-version = "py311"
 [tool.ruff.lint]
 # Наборы правил: E/W (ошибки стиля PEP8), F (ошибки Python), I (сортировка импортов)
 select = ["E", "W", "F", "I"]
-# Игнорировать определенные правила (если нужно)
+# Игнорировать определенные правила (когда понадобится)
 ignore = []
 
 [tool.ruff.lint.isort]
 # Чтобы линтер понимал, что app — это наш локальный пакет
 known-first-party = ["app"]
+
+
+#НАСТРОЙКА ТЕСТОВ
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests", "app/tests"]
+asyncio_mode = "auto" #запускать все тесты в асинхронном режиме
+filterwarnings = [
+    'ignore:Please use `import python_multipart` instead\.:PendingDeprecationWarning'
+]

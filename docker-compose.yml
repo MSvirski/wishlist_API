@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Сервис базы данных
   db:
@@ -18,6 +16,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  db-test:
+    image: postgres:15
+    container_name: wishlist-postgres-db-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty123
+      POSTGRES_DB: pet_wishlist_test_db  # Новое имя тестовой БД
+    ports:
+      - "5434:5432" # Внешний порт 5434, чтобы не конфликтовать с 5433
 
   # Сервис нашего FastAPI приложения
   web:

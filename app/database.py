@@ -1,8 +1,8 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
 
 load_dotenv()
 
@@ -12,21 +12,23 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
 # Строка подключения: postgresql://логин:пароль@хост:порт/имя_базы
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@db:5432/{DB_NAME}"
+DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@db:5432/{DB_NAME}"
 
-# Движок для работы с PostgreSQL. Держит пул соединений для оперативного доступа к БД
-engine = create_engine(DATABASE_URL)
+# 1. Используем асинхронное свойство database_url_async (с протоколом postgresql+asyncpg://)
+engine = create_async_engine(DATABASE_URL, echo=True)
 
-# Фабрика сессий
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# 2. Создаем фабрику асинхронных сессий
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    class_=AsyncSession
+)
 
-# Базовый класс для моделей
-Base = declarative_base()
+# 3. Современный базовый класс для моделей SQLAlchemy 2.0
+class Base(DeclarativeBase):
+    pass
 
-# Зависимость для получения сессии БД в эндпоинтах. Дает сессию к БД когда она понадобится, и закрет ее по завершению
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# 4. Асинхронная зависимость для получения сессии БД в эндпоинтах
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session

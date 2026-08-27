@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 # Базовая схема для пользователя (то, что общее для ввода и вывода)
@@ -10,17 +10,14 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
-# Схема, которую мы будем отдавать клиенту обратно (пароль возвращать нельзя!)
+# Схема, которую мы будем отдавать клиенту обратно
 class UserResponse(UserBase):
     id: int
-
-    # Этот подкласс нужен, чтобы Pydantic умел читать данные прямо из моделей SQLAlchemy
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 class TokenData(BaseModel):
-    username: str | None = None
+    user_id: str | None = None

@@ -1,22 +1,31 @@
 import os
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 import jwt
 from dotenv import load_dotenv
-from passlib.context import CryptContext
 
 load_dotenv()
 
-# Говорим passlib использовать алгоритм bcrypt для хэширования
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Функция, которая принимает чистый пароль и возвращает хэш
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    """Хэширует пароль пользователя."""
+    # Переводим строку в байты
+    pwd_bytes = password.encode('utf-8')
+    # Генерируем "соль"
+    salt = bcrypt.gensalt()
+    # Хэшируем и переводим обратно в строку для хранения в БД
+    hashed_password = bcrypt.hashpw(pwd_bytes, salt)
+    return hashed_password.decode('utf-8')
 
 # Функция для проверки соответствия чистого пароля и хэша из базы
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    """Проверяет соответствие чистого пароля хэшу из базы данных."""
+    pwd_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    # Метод сам извлечет соль из хэша и сравнит их
+    return bcrypt.checkpw(pwd_bytes, hashed_bytes)
 
 
 SECRET_KEY = os.getenv("SECRET_KEY", "default_fallback_secret_key")
