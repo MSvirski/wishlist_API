@@ -29,11 +29,13 @@ stop_and_clean() {
     # 2. Удаляем конфликтующие контейнеры по именам на всякий случай
     if ! docker ps &> /dev/null; then
         sudo docker rm -f wishlist-postgres-db wihslist-app &> /dev/null || true
+        sudo docker rm -f wishlist-postgres-db wihslist-app-test &> /dev/null || true
         sudo docker rm -f  wihslist-app &> /dev/null || true
         sudo docker volume  rm -f wishlist_api-main_postgres_data || true
 
     else
         docker rm -f wishlist-postgres-db wihslist-app &> /dev/null || true
+        docker rm -f wishlist-postgres-db wihslist-app-test &> /dev/null || true
         docker rm -f wihslist-app &> /dev/null || true
         docker volume  rm -f wishlist_api-main_postgres_data || true
     fi

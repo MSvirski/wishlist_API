@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm  # <-- Добавили импорт
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -11,9 +13,12 @@ router = APIRouter()
 
 # Эндпоинт для регистрации
 @router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # 1. Проверяем, существует ли уже пользователь с таким email
-    db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
+    query = select(models.User).where(models.User.email == user.email)
+    result = await db.execute(query)
+    db_user_email = result.scalars().one_or_none()
+
     if db_user_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -21,7 +26,9 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         )
 
     # 2. Проверяем, существует ли уже пользователь с таким именем (username)
-    db_user_name = db.query(models.User).filter(models.User.username == user.username).first()
+    query = select(models.User).where(models.User.username == user.username)
+    result = await db.execute(query)
+    db_user_name = result.scalars().one_or_none()
     if db_user_name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -40,32 +47,33 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     # 5. Сохраняем в базу данных
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    await db.commit()
+    await db.refresh(new_user)
 
     # Благодаря response_model=schemas.UserResponse, FastAPI сам вернет только id, username и email
     return new_user
 
 
-# Эндпоинт для входа (логина) и получения токена
+# Точка входа для получения токена
 @router.post("/token", response_model=schemas.Token)
-def login_for_access_token(
+async def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
-        db: Session = Depends(get_db)
+        db: AsyncSession = Depends(get_db)
 ):
-    # 1. Ищем пользователя в базе по username
-    user = db.query(models.User).filter(models.User.username == form_data.username).first()
+    # 1. Ищем пользователя строго по EMAIL (в поле form_data.username в Swagger вводится почта)
+    query = select(models.User).where(models.User.email == form_data.username)
+    result = await db.execute(query)
+    user = result.scalars().one_or_none()
 
-    # 2. Если пользователя нет или пароль не совпадает — кидаем ошибку
+    # 2. Проверка существования и пароля
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверное имя пользователя или пароль",
+            detail="Неверный email или пароль",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 3. Если всё правильно, создаем токен (зашиваем туда username)
-    access_token = create_access_token(data={"sub": user.username})
+    # 3. Зашиваем в токен ID пользователя, приведенный к строке
+    access_token = create_access_token(data={"sub": str(user.id)})
 
-    # 4. Возвращаем токен клиенту
     return {"access_token": access_token, "token_type": "bearer"}
