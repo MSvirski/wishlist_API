@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5433:5432"  # Оставляем порт 5433 наружу для твоего ПК, если захочешь подключиться
+      - "${DB_PORT}:${DB_INSIDE_PORT}"  # Оставляем порт N наружу для твоего ПК, если захочешь подключиться
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,7 +25,7 @@ services:
       POSTGRES_PASSWORD: qwerty123
       POSTGRES_DB: pet_wishlist_test_db  # Новое имя тестовой БД
     ports:
-      - "5434:5432" # Внешний порт 5434, чтобы не конфликтовать с 5433
+      - "5434:5432" # Внешний порт 5434
 
   # Сервис нашего FastAPI приложения
   web:
