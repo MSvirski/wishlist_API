@@ -5,7 +5,7 @@ from httpx import AsyncClient
 async def test_register_user_success(ac: AsyncClient):
     response = await ac.post(
         "/auth/register",
-        json={"username": "", "email": "tester@example.com", "password": "securepassword123"}
+        json={"username": "Kevin", "email": "tester@example.com", "password": "securepassword123"}
     )
     assert response.status_code == 201
     data = response.json()
@@ -16,7 +16,7 @@ async def test_register_user_success(ac: AsyncClient):
 async def test_register_user_duplicate_email(ac: AsyncClient):
     response = await ac.post(
      "/auth/register",
-      json={"username": "", "email": "tester@example.com", "password": "anotherpassword777"}
+      json={"username": "Ivan", "email": "tester@example.com", "password": "anotherpassword777"}
    )
     assert response.status_code == 400
     # Проверяем текст ошибки

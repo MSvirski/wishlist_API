@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # Базовая схема для пользователя (то, что общее для ввода и вывода)
@@ -7,8 +7,10 @@ class UserBase(BaseModel):
     email: EmailStr
 
 # Схема, которую мы ждем при регистрации (клиент присылает имя, email и пароль)
-class UserCreate(UserBase):
-    password: str
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=6)
 
 # Схема, которую мы будем отдавать клиенту обратно
 class UserResponse(UserBase):
