@@ -23,10 +23,6 @@ async def test_register_user_duplicate_email(ac: AsyncClient):
     assert response.json()["detail"] == "Пользователь с таким email уже зарегистрирован"
 
 
-import pytest
-from unittest.mock import MagicMock
-from sqlalchemy.exc import IntegrityError, SAWarning  # <-- Импортируем SAWarning
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 # ... (остальной код) ...

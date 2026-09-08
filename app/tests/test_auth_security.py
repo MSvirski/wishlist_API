@@ -1,16 +1,17 @@
 import os
-import time
-from datetime import datetime, timezone, timedelta
-import pytest
+from datetime import datetime, timedelta, timezone
+
 import jwt
+import pytest
 
 from app.auth.security import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ALGORITHM,
+    create_access_token,
     get_password_hash,
     verify_password,
-    create_access_token,
-    ALGORITHM,
-    ACCESS_TOKEN_EXPIRE_MINUTES
 )
+
 # --- ТЕСТЫ ХЭШИРОВАНИЯ ПАРОЛЕЙ ---
 
 def test_get_password_hash_returns_string():
