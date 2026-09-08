@@ -43,4 +43,5 @@ jobs:
           # Переопределяем хост: на GitHub база доступна по адресу localhost
           TEST_DATABASE_URL: postgresql+asyncpg://postgres:qwerty123@localhost:5432/pet_wishlist_test_db
           DB_CONNECTION_STRING: postgresql+asyncpg://postgres:maks123@localhost:5432/pet_wishlist_db
+          SECRET_KEY: "super_secret_key_exactly_32_characters_long"
         run: pytest -v
