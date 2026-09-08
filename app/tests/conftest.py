@@ -41,9 +41,32 @@ async def override_get_db():
         yield session
 
 
+# Фикстура для транзакционной изоляции (Rollback после каждого теста)
+@pytest.fixture
+async def db_session():
+    """Создает изолированную сессию для теста и откатывает её в конце."""
+    async with engine_test.connect() as connection:
+        # Открываем внешнюю транзакцию в соединении
+        transaction = await connection.begin()
+
+        # Создаем сессию, привязанную к этому соединению
+        async with AsyncSessionTest(bind=connection) as session:
+            yield session  # Сессия передается в тест или в override_get_db
+
+            # Закрываем сессию явным образом
+            await session.close()
+
+        # Откатываем ВСЕ изменения, сделанные в рамках этого теста
+        await transaction.rollback()
+
 # 4. Асинхронный тестовый клиент с автоматической подменой зависимостей
 @pytest.fixture
-async def ac():
+async def ac(db_session):
+    """Тестовый клиент, который использует транзакционную сессию db_session."""
+
+    # Функция-подмена подставляет ровно ту сессию, которая сейчас будет откачена
+    async def override_get_db():
+        yield db_session
     # Включаем подмену базы данных для роутов
     app.dependency_overrides[get_db] = override_get_db
 
