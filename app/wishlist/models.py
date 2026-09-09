@@ -19,7 +19,7 @@ class WishItem(Base):  #Минимально рабочий код
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    link: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    linkImage: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
     # Как сильно пользователь желает получить этот подарок
     priority: Mapped[PriorityEnum] = mapped_column(
@@ -34,3 +34,11 @@ class WishItem(Base):  #Минимально рабочий код
 
     # Поле для явного обращения к таблице User. Например wish.booker.username
     booker = relationship("User", foreign_keys=[booked_by_user_id])
+
+class WishList(Base):  #Список желаний
+    __tablename__ = "wish_lists"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    linkImage: Mapped[str | None] = mapped_column(String(1000), nullable=True)
