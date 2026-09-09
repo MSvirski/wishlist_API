@@ -5,6 +5,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from app.auth.models import User
+from app.auth.security import create_access_token, get_password_hash
 from app.database import Base, get_db
 from app.main import app
 
@@ -75,3 +77,41 @@ async def ac(db_session):
 
     # Сбрасываем подмену
     app.dependency_overrides.clear()
+
+
+# ИСПРАВЛЕННАЯ ФИКСТУРА: берем db_session как аргумент!
+@pytest.fixture
+async def test_users(db_session):
+    """Создает тестовых пользователей в рамках ТЕКУЩЕЙ транзакции теста."""
+    hashed_pwd = get_password_hash("password123")
+
+    user1 = User(username="alice", email="alice@mail.com", hashed_password=hashed_pwd)
+    user2 = User(username="bob", email="bob@mail.com", hashed_password=hashed_pwd)
+
+    db_session.add_all([user1, user2])
+    await db_session.flush()  # flush отправляет данные в СУБД и генерирует ID, но не закрывает транзакцию!
+
+    # Сохраняем сгенерированные ID, чтобы они были доступны в тестах
+    #alice_id = user1.id
+    #bob_id = user2.id
+
+    # Экспортируем обратно чистые объекты
+    yield user1, user2
+
+
+# Авторизованный клиент для Алисы
+@pytest.fixture
+async def alice_client(ac, test_users):
+    alice, _ = test_users
+    token = create_access_token(data={"sub": str(alice.id)})
+    ac.headers.update({"Authorization": f"Bearer {token}"})
+    return ac
+
+
+# Авторизованный клиент для Боба
+@pytest.fixture
+async def bob_client(ac, test_users):
+    _, bob = test_users
+    token = create_access_token(data={"sub": str(bob.id)})
+    ac.headers.update({"Authorization": f"Bearer {token}"})
+    return ac

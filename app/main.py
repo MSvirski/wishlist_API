@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.auth.router import router as auth_router
+from app.friends.router import router as friends_router
 from app.wishlist.router import router as wishlist_router
 
 from .database import Base, engine
@@ -28,3 +29,4 @@ def read_root():
 # Подключаем роутеры
 app.include_router(auth_router, prefix="/auth", tags=["Авторизация"])
 app.include_router(wishlist_router, prefix="/wishes", tags=["🎁 Списки желаний"])
+app.include_router(friends_router, prefix="/friends", tags=["Друзья"])
