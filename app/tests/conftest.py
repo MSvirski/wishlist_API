@@ -5,11 +5,10 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from app.auth.models import User
+from app.auth.security import create_access_token, get_password_hash
 from app.database import Base, get_db
 from app.main import app
-from app.auth.security import create_access_token
-from app.auth.models import User
-from app.auth.security import get_password_hash
 
 # Настройка тестовой БД
 TEST_DATABASE_URL = os.getenv(
@@ -93,8 +92,8 @@ async def test_users(db_session):
     await db_session.flush()  # flush отправляет данные в СУБД и генерирует ID, но не закрывает транзакцию!
 
     # Сохраняем сгенерированные ID, чтобы они были доступны в тестах
-    alice_id = user1.id
-    bob_id = user2.id
+    #alice_id = user1.id
+    #bob_id = user2.id
 
     # Экспортируем обратно чистые объекты
     yield user1, user2

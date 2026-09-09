@@ -1,5 +1,7 @@
-from pydantic import BaseModel, EmailStr, ConfigDict  # <-- Добавили импорт ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr  # <-- Добавили импорт ConfigDict
+
 from app.friends.models import FriendshipStatus
+
 
 # Схема для отправки запроса по username
 class FriendRequestCreate(BaseModel):
