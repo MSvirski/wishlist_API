@@ -1,7 +1,7 @@
 # app/friends/models.py
 from enum import Enum
 
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -18,8 +18,12 @@ class Friendship(Base):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     friend_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    relation: Mapped[str] = mapped_column(String, default="pending", nullable=False)
+    relation: Mapped[FriendshipStatus] = mapped_column(
+        String(20),
+        default=FriendshipStatus.PENDING,
+        server_default=FriendshipStatus.PENDING.value,
+    )
     # Дополнительное ограничение, чтобы пользователь не мог добавить в друзья самого себя
     __table_args__ = (
-        UniqueConstraint("user_id", "friend_id", name="unique_user_friend_pair"),
+        CheckConstraint("user_id <> friend_id", name="check_user_not_self_friend"),
     )

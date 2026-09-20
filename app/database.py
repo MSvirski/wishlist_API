@@ -1,13 +1,10 @@
-import os
-
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-load_dotenv()
+from app.config import settings
 
 # Строка подключения: postgresql://логин:пароль@хост:порт/имя_базы
-DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
+DATABASE_URL = settings.DB_CONNECTION_STRING
 
 # 1. Используем асинхронное свойство database_url_async (с протоколом postgresql+asyncpg://)
 engine = create_async_engine(DATABASE_URL, echo=True)
