@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -7,16 +5,12 @@ from sqlalchemy.pool import NullPool
 
 from app.auth.models import User
 from app.auth.security import create_access_token, get_password_hash
+from app.config import settings
 from app.database import Base, get_db
 from app.main import app
 
-# Настройка тестовой БД
-TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL"
-)
-
 engine_test = create_async_engine(
-    TEST_DATABASE_URL,
+    settings.TEST_DATABASE_URL,
     poolclass=NullPool,  # <--- КРИТИЧЕСКИ ВАЖНО ДЛЯ ТЕСТОВ
 )
 
@@ -87,31 +81,56 @@ async def test_users(db_session):
 
     user1 = User(username="alice", email="alice@mail.com", hashed_password=hashed_pwd)
     user2 = User(username="bob", email="bob@mail.com", hashed_password=hashed_pwd)
-
-    db_session.add_all([user1, user2])
+    otherUser1 = User(username="otherUser1", email="otherUser1@mail.com", hashed_password=hashed_pwd)
+    otherUser2 = User(username="otherUser2", email="otherUser2@mail.com", hashed_password=hashed_pwd)
+    otherUser3 = User(username="otherUser3", email="otherUser3@mail.com", hashed_password=hashed_pwd)
+    db_session.add_all([user1, user2, otherUser1, otherUser2, otherUser3])
     await db_session.flush()  # flush отправляет данные в СУБД и генерирует ID, но не закрывает транзакцию!
 
-    # Сохраняем сгенерированные ID, чтобы они были доступны в тестах
-    #alice_id = user1.id
-    #bob_id = user2.id
-
     # Экспортируем обратно чистые объекты
-    yield user1, user2
+    yield user1, user2, otherUser1, otherUser2, otherUser3
 
 
 # Авторизованный клиент для Алисы
 @pytest.fixture
 async def alice_client(ac, test_users):
-    alice, _ = test_users
+    alice = test_users[0]
     token = create_access_token(data={"sub": str(alice.id)})
-    ac.headers.update({"Authorization": f"Bearer {token}"})
+    ac.headers = ac.headers.__class__({"Authorization": f"Bearer {token}"})
     return ac
 
 
 # Авторизованный клиент для Боба
 @pytest.fixture
 async def bob_client(ac, test_users):
-    _, bob = test_users
+    bob = test_users[1]
     token = create_access_token(data={"sub": str(bob.id)})
-    ac.headers.update({"Authorization": f"Bearer {token}"})
+    ac.headers = ac.headers.__class__({"Authorization": f"Bearer {token}"})
+    return ac
+
+
+# Авторизованный клиент для OtherUser1
+@pytest.fixture
+async def otherUser1_client(ac, test_users):
+    user = test_users[2]
+    token = create_access_token(data={"sub": str(user.id)})
+    ac.headers = ac.headers.__class__({"Authorization": f"Bearer {token}"})
+    return ac
+
+
+# Авторизованный клиент для OtherUser2
+@pytest.fixture
+async def otherUser2_client(ac, test_users):
+    user = test_users[3]
+    token = create_access_token(data={"sub": str(user.id)})
+    ac.headers = ac.headers.__class__({"Authorization": f"Bearer {token}"})
+    return ac
+
+
+# Авторизованный клиент для OtherUser3
+@pytest.fixture
+async def otherUser3_client(ac, test_users):
+    user = test_users[4]
+    token = create_access_token(data={"sub": str(user.id)})
+    ac.headers = ac.headers.__class__({"Authorization": f"Bearer {token}"})
     return ac

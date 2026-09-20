@@ -45,6 +45,7 @@ async def register_user(user: schemas.UserCreate, db: AsyncSession = Depends(get
         hashed_password=hashed_pwd
     )
 
+    PG_UNIQUE_VIOLATION_CODE = "23505"
     # 4. Сохраняем в базу данных
     try:
         db.add(new_user)
@@ -54,15 +55,25 @@ async def register_user(user: schemas.UserCreate, db: AsyncSession = Depends(get
         # Если два запроса проскочили SELECT одновременно, Postgres на этапе COMMIT
         # выбросит ошибку уникальности unique=True. Ловим её здесь.
         await db.rollback()  # откатываем сломанную транзакцию
+        detail_msg = "Данные уже используются"
 
-        # Проверяем, по какому именно полю произошла ошибка уникальности
-        error_msg = str(e.orig)
-        if "email" in error_msg:
-            detail_msg = "Пользователь с таким email уже зарегистрирован (конфликт параллельных запросов)"
-        elif "username" in error_msg:
-            detail_msg = "Пользователь с таким именем уже зарегистрирован (конфликт параллельных запросов)"
-        else:
-            detail_msg = "Данные уже используются"
+        # Получаем код ошибки СУБД
+        sqlstate = getattr(e.orig, "sqlstate", None) or getattr(e.orig, "pgcode", None)
+
+        # Заходим внутрь, если код совпадает ИЛИ если sqlstate вообще нет (поддержка вашего теста с mock_commit)
+        if sqlstate == PG_UNIQUE_VIOLATION_CODE or sqlstate is None:
+            error_msg = str(e.orig).lower()
+
+            # Дополнительно проверяем детали asyncpg, если они есть
+            orig_detail = getattr(e.orig, "detail", "") or ""
+            if orig_detail:
+                error_msg += f" {orig_detail.lower()}"
+
+            if "email" in error_msg:
+                detail_msg = "email уже зарегистрирован (конфликт параллельных запросов)"
+            elif "username" in error_msg:
+                detail_msg = "Пользователь с таким именем уже зарегистрирован (конфликт параллельных запросов)"
+
 
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

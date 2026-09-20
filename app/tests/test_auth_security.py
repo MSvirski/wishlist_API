@@ -1,16 +1,14 @@
-import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
 import pytest
 
 from app.auth.security import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    ALGORITHM,
     create_access_token,
     get_password_hash,
     verify_password,
 )
+from app.config import settings
 
 # --- ТЕСТЫ ХЭШИРОВАНИЯ ПАРОЛЕЙ ---
 
@@ -60,8 +58,7 @@ def test_create_access_token_success():
     assert isinstance(token, str)
 
     # Декодируем токен для проверки содержимого
-    secret = os.getenv("SECRET_KEY")
-    decoded_data = jwt.decode(token, secret, algorithms=[ALGORITHM])
+    decoded_data = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
     assert decoded_data["sub"] == "user_123"
     assert decoded_data["role"] == "admin"
@@ -75,14 +72,13 @@ def test_create_access_token_expiration_time():
     now = datetime.now(timezone.utc)
     token = create_access_token(payload)
 
-    secret = os.getenv("SECRET_KEY")
-    decoded_data = jwt.decode(token, secret, algorithms=[ALGORITHM])
+    decoded_data = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
     # Переводим exp из timestamp обратно в datetime
     expire_datetime = datetime.fromtimestamp(decoded_data["exp"], tz=timezone.utc)
 
     # Ожидаемое время
-    expected_expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expected_expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     # Проверяем разницу (допускаем погрешность в пару секунд на время выполнения теста)
     time_delta = abs((expire_datetime - expected_expire).total_seconds())
@@ -99,12 +95,12 @@ def test_create_access_token_expired():
     expire = datetime.now(timezone.utc) - timedelta(minutes=1)  # Токен устарел минуту назад
     to_encode.update({"exp": expire})
 
-    secret = os.getenv("SECRET_KEY")
-    expired_token = jwt.encode(to_encode, secret, algorithm=ALGORITHM)
+
+    expired_token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
     # Ожидаем, что библиотека jwt выбросит ошибку при попытке декодировать
     with pytest.raises(jwt.ExpiredSignatureError):
-        jwt.decode(expired_token, secret, algorithms=[ALGORITHM])
+        jwt.decode(expired_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
 def test_create_access_token_invalid_signature():
@@ -116,14 +112,14 @@ def test_create_access_token_invalid_signature():
     # Пытаемся декодировать его с ДРУГИМ (неверным) ключом
     wrong_secret = "completely_different_secret_key1234"
     with pytest.raises(jwt.InvalidSignatureError):
-        jwt.decode(token, wrong_secret, algorithms=[ALGORITHM])
+        jwt.decode(token, wrong_secret, algorithms=[settings.ALGORITHM])
 
 
 def test_decode_malformed_token():
     """Проверяет реакцию на сломанный токен."""
     broken_token = "not.a.valid.jwt.token"
     with pytest.raises(jwt.DecodeError):
-        jwt.decode(broken_token, "test_super_secret_key_123456789", algorithms=[ALGORITHM])
+        jwt.decode(broken_token, "test_super_secret_key_123456789", algorithms=[settings.ALGORITHM])
 
 
 @pytest.mark.parametrize("bad_password", ["", " ", "longstr" * 100])

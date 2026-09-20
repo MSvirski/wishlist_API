@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 # ТЕСТ РЕГИСТРАЦИИ (Проверяем уникальность email)
-async def test_register_user_duplicate_email(ac: AsyncClient):
+async def test_register_user_success(ac: AsyncClient):
     response = await ac.post(
      "/auth/register",
       json={"username": "Ivan", "email": "tester@example.com", "password": "anotherpassword777"}
@@ -14,6 +14,12 @@ async def test_register_user_duplicate_email(ac: AsyncClient):
     data = response.json()
     assert data["email"] == "tester@example.com"
     assert "id" in data
+
+async def test_register_duplicate_email(ac: AsyncClient):
+    await ac.post(
+     "/auth/register",
+      json={"username": "Ivan", "email": "tester@example.com", "password": "anotherpassword777"}
+   )
     response = await ac.post(
         "/auth/register",
         json={"username": "Ivan", "email": "tester@example.com", "password": "anotherpassword777"}
@@ -23,8 +29,6 @@ async def test_register_user_duplicate_email(ac: AsyncClient):
     assert response.json()["detail"] == "Пользователь с таким email уже зарегистрирован"
 
 
-
-
 # ... (остальной код) ...
 
 @pytest.mark.asyncio
@@ -32,7 +36,7 @@ async def test_register_user_duplicate_email(ac: AsyncClient):
     "error_type, detail_substring",
     [
         ("email", "email уже зарегистрирован (конфликт параллельных запросов)"),
-        ("username", "Пользователь с таким именем уже зарегистрирован"),
+        ("username", "Пользователь с таким именем уже зарегистрирован (конфликт параллельных запросов)"),
         ("other", "Данные уже используются")
     ],
     ids=["integrity_email", "integrity_username", "integrity_other"]

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr  # <-- Добавили импорт ConfigDict
+from pydantic import BaseModel, ConfigDict  # <-- Добавили импорт ConfigDict
 
 from app.friends.models import FriendshipStatus
 
@@ -13,7 +13,6 @@ class UserFriendInfo(BaseModel):
 
     id: int
     username: str
-    email: EmailStr
 
 # Схема ответа, показывающая детали заявки
 class FriendRequestResponse(BaseModel):
